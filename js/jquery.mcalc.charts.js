@@ -11,47 +11,9 @@
 // i18n
 function _(str, args) { return $.i18n('mcalc', str, args); }
 
-$.extend($.ui.mcalc.defaults, {
-    interestChartType: ['p3', 'p'],
-    interestChart: {
-        chs:  '290x160',
-        cht:  'p3',
-        chco: 'F7AF3A,CC3300,1C94C4',
-        chma: '10,0,0,20|80,20',
-        chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
-        chf:  'bg,s,eeeeee',
-        chdlp: 'b'
-    },
-    amortChart: {
-        chs:  '270x160',
-        cht:  'lc',
-        chco: 'F7AF3A,CC3300',
-        chma: '10,0,0,20|80,20',
-        chdl: $.format('{0:s}|{1:s}', _('Principal'), _('Interest')),
-        chxt: 'x,y',
-        chg:  '20,50,1,5',
-        chf:  'bg,s,eeeeee',
-        chm:  'D,F7AF3A,0,0,2|D,CC3300,1,0,2',
-        chdlp: 'b'
-    },
-    balanceChart: {
-        cht:  'lc',
-        chls: '2.0,0.0,0.0',
-        chxt: 'x,y',
-        chdl: _('Balance'),
-        chs:  '288x160',
-        chg:  '20,50,1,5',
-        chf:  'bg,s,eeeeee',
-        chma: '10,0,0,20|80,20',
-        chdlp: 'b'
-    }
-});
-
-
 $.googleChart = function(chart) {
     this.url = 'http://chart.apis.google.com/chart';
     var o = [];
-    console.log(chart)
     for (var x in chart) {
         if (x == 'chdl') {
             o.push([x, escape(chart[x])].join('='));
@@ -60,7 +22,6 @@ $.googleChart = function(chart) {
             o.push([x, chart[x]].join('='));
         }
     }
-    console.log(o)
     return $.format('url({0:s}?{1:s})', this.url, o.join('&'));
 };
 
@@ -102,13 +63,20 @@ $.ui.mcalc.component({
     defaults: { 
         interestchart: true,
         interestchartSmartResize: true,
-        interestchartType: ['p3', 'p']
+        interestChartType: ['p3', 'p'],
+        interestChart: {
+            chs:  '290x160',
+            cht:  'p3',
+            chco: 'F7AF3A,CC3300,1C94C4',
+            chma: '10,0,0,20|80,20',
+            chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
+            chf:  'bg,s,eeeeee',
+            chdlp: 'b'
+        },
     },
     tpl: '<div class="ui-chart ui-corner-all"></div>',
     init: function(ui) {
         ui._interestChartType = ui.options.interestChart.cht || ui.options.interestChartType[0];
-        console.log(ui.options.interestChart.cht)
-        console.log(ui.options.interestChartType[0])
     },
     events: [
         {type: 'ready', callback: function(e, ui){
@@ -136,7 +104,6 @@ $.ui.mcalc.component({
             var interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
             var other     = Math.abs(Math.round(((total - subtotal) / total) * 100));
             var size      = ui.options.interestChart.chs.split('x');
-            console.log(size)
             
             // Sensible size adjustment (used mainly for widget vertion)
             if (ui._getActiveTab() == 'calculator') {
@@ -168,7 +135,32 @@ $.ui.mcalc.component({
 $.ui.mcalc.component({
     name: 'amortchart',
     lazy: true,
-    defaults: { amortchart: true },
+    defaults: { 
+        amortchart: true,
+        amortChart: {
+            chs:  '270x160',
+            cht:  'lc',
+            chco: 'F7AF3A,CC3300',
+            chma: '10,0,0,20|80,20',
+            chdl: $.format('{0:s}|{1:s}', _('Principal'), _('Interest')),
+            chxt: 'x,y',
+            chg:  '20,50,1,5',
+            chf:  'bg,s,eeeeee',
+            chm:  'D,F7AF3A,0,0,2|D,CC3300,1,0,2',
+            chdlp: 'b'
+        },
+        balanceChart: {
+            cht:  'lc',
+            chls: '2.0,0.0,0.0',
+            chxt: 'x,y',
+            chdl: _('Balance'),
+            chs:  '288x160',
+            chg:  '20,50,1,5',
+            chf:  'bg,s,eeeeee',
+            chma: '10,0,0,20|80,20',
+            chdlp: 'b'
+        }
+    },
     tpl: [
     '<div class="ui-amortcharts">',
         '<div class="ui-amortcharts-amort ui-chart"></div>',
