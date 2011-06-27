@@ -35,7 +35,7 @@ $.widget('ui.mcalc', {
             if ($.ui.mcalc.components[x]) {
                 var component = $.ui.mcalc.components[x];
                 if (component.defaults) {
-                    ui.options = $.extend(component.defaults, ui.options);
+                    ui.options = $.extend(true, component.defaults, ui.options);
                 }
                 if ((component.lazy && ui.options[component.name]) || !component.lazy) {
                     ui._createComponent(component);
@@ -75,10 +75,10 @@ $.widget('ui.mcalc', {
             pmi:                this._component('pmi').val(),
             interest:           this._component('interest').val(),
             amortschedule:      this._component('amortschedule').val(),
-            yearlyInterest:     i/100,
-            monthlyInterest:    i/100/12,
+            yearlyInterest:     i / 100,
+            monthlyInterest:    i / 100 / 12,
             yearlyPeriods:      y,
-            monthlyPeriods:     y*12,
+            monthlyPeriods:     y * 12,
             propretyTax:        t,
             yearlyPropretyTax:  t/100,
             monthlyPropertyTax: t/100,

@@ -11,15 +11,14 @@
 // i18n
 function _(str, args) { return $.i18n('mcalc', str, args); }
 
-$.extend($.ui.mcalc.defaults, {
-    permalinkInput: true,
-    permalinkAnchor: true
-});
-
 $.ui.mcalc.component({
     name: 'permalink',
     lazy: true,
-    defaults: { permalink: true },
+    defaults: { 
+        permalink: true,
+        permalinkInput: true,
+        permalinkAnchor: true
+    },
     help: _('You can use this link to share your results with others or bookmark for later.'),
     tpl:  $.format('<div class="ui-mcalc-permalink"><label>{0:s}</label><input type="text" value="" /></div>', _('Permalink')),
     init: function(ui) {

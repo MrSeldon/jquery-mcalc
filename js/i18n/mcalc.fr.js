@@ -35,7 +35,10 @@ $.i18n('fr.mcalc', {
     "Le montant du pr&#234;t, ou la valeur de l'actif apport&#233;, est le principal. Cette valeur principale est tenue par l'emprunteur sur le cr&#233;dit.",
 
     "The interest is a compensation to the lender for forgoing other useful investments that could have been made with the loaned asset.":
-    "L'int&#233;r&#234;t est une compensation pour le pr&#234;teur pour la renonciation d'autres investissements utiles qui auraient pu &#234;tre faite avec le pr&#234;t d'actifs."
+    "L'int&#233;r&#234;t est une compensation pour le pr&#234;teur pour la renonciation d'autres investissements utiles qui auraient pu &#234;tre faite avec le pr&#234;t d'actifs.",
+
+    'You can use this link to share your results with others or bookmark for later.':
+    'Vous pouvez utiliser ce lien pour partager les résultats ou simplement les ajouter à vos favoris.'
 });
 $.i18n('fr');
 

@@ -51,6 +51,7 @@ $.extend($.ui.mcalc.defaults, {
 $.googleChart = function(chart) {
     this.url = 'http://chart.apis.google.com/chart';
     var o = [];
+    console.log(chart)
     for (var x in chart) {
         if (x == 'chdl') {
             o.push([x, escape(chart[x])].join('='));
@@ -59,6 +60,7 @@ $.googleChart = function(chart) {
             o.push([x, chart[x]].join('='));
         }
     }
+    console.log(o)
     return $.format('url({0:s}?{1:s})', this.url, o.join('&'));
 };
 
@@ -104,8 +106,9 @@ $.ui.mcalc.component({
     },
     tpl: '<div class="ui-chart ui-corner-all"></div>',
     init: function(ui) {
-        ui._interestChartType = $.isArray(ui.options.interestChartType) 
-            && ui.options.interestChartType[0] || ui.options.interestChartType;
+        ui._interestChartType = ui.options.interestChart.cht || ui.options.interestChartType[0];
+        console.log(ui.options.interestChart.cht)
+        console.log(ui.options.interestChartType[0])
     },
     events: [
         {type: 'ready', callback: function(e, ui){
@@ -133,6 +136,7 @@ $.ui.mcalc.component({
             var interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
             var other     = Math.abs(Math.round(((total - subtotal) / total) * 100));
             var size      = ui.options.interestChart.chs.split('x');
+            console.log(size)
             
             // Sensible size adjustment (used mainly for widget vertion)
             if (ui._getActiveTab() == 'calculator') {
@@ -146,10 +150,9 @@ $.ui.mcalc.component({
                     });
                 }
             }
-            
-            var chart = $.googleChart($.extend(ui.options.interestChart, {
+            var chart = $.googleChart($.extend({}, ui.options.interestChart, {
                 chd: $.format('t:{0:s},{1:s},{2:s}', principal, interest, other),
-                cht: ui._interestChartType
+                cht: ''+ui._interestChartType // strange bug..
             }));
 
             ui._component('interestchart').css({
