@@ -58,7 +58,7 @@ $.ui.mcalc.extendedEncode = function(val) {
 
 $.ui.mcalc.component({
     name: 'interestchart',
-    help: _('Click on the char to switch view mode.'),
+    help: _('Click on the chart to switch view mode.'),
     lazy: true,
     defaults: { 
         interestchart: true,
