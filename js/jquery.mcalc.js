@@ -71,6 +71,7 @@ $.widget('ui.mcalc', {
         this.data = {
             principal:          p,
             cashdown:           this._component('cashdown').val(),
+            cashdownType:       this.options.cashdownType,
             term:               this._component('term').val(),
             pmi:                this._component('pmi').val(),
             interest:           this._component('interest').val(),
@@ -132,7 +133,12 @@ $.widget('ui.mcalc', {
             e.callback.apply(this, [event, $elf]);
         };
         this._components[ns] = arguments[0];
-        $.tpl(ns, arguments[0].tpl);
+        if ($.isFunction(arguments[0].tpl)) {
+            $.tpl(ns, arguments[0].tpl(this));
+        }
+        else {
+            $.tpl(ns, arguments[0].tpl);
+        }
         this._ui[ns] = $.tpl(ns);
         if (c.init) { c.init.apply(this._ui[ns], [this]); }
         if (c.val)  { this._ui[ns].val = c.val; }
@@ -223,7 +229,12 @@ $.widget('ui.mcalc', {
 // Calculate monthly payments
 $.ui.mcalc.calc = function() { 
     var d = this.data;
-    var p = d.principal - (d.principal * d.cashdown/100);
+    if (d.cashdownType == 'raw') {
+        var p = d.principal - d.cashdown;
+    }
+    else {
+        var p = d.principal - (d.principal * d.cashdown/100);
+    }
 
     d.yearlySubtotal  = parseFloat((p * Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) * d.yearlyInterest) / (Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) -1), 10);
     d.yearlyTotal     = parseFloat(d.yearlySubtotal + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
@@ -244,6 +255,7 @@ $.ui.mcalc.defaults = {
     form:        ['principal', 'cashdown', 'interest', 'term', 'amortschedule', 'subtotal', 'insurance', 'ptaxes', 'pmi', 'total'],
     principal:   300000, // $
     cashdown:    '10.00', // %
+    cashdownType: 'percent', // raw || percent
     interest:    '5.50', // %
     term:        30,     // years
     termValues:  [5, 10, 15, 20, 25, 30],
@@ -341,7 +353,7 @@ $.ui.mcalc.component({
 });
 
 
-$.ui.mcalc.defaults.cashdownKeynav = {
+$.ui.mcalc.defaults.fixedKeynav = {
     type: 'fixed',
     max_length: 5,
     max_digits: 2,
@@ -350,7 +362,10 @@ $.ui.mcalc.defaults.cashdownKeynav = {
 
 $.ui.mcalc.component({
     name: 'cashdown',
-    tpl:  $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-cashdown" type="text" maxlength="4" /> % <small></small></li>', _('Down payment')),
+    tpl:  function(ui){
+        return $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-cashdown" type="text" maxlength="6" /> {1:s} <small></small></li>', 
+                        _('Down payment'), (ui.options.cashdownType == 'raw' && '$' || '%'))
+    },
     val:  function(){ 
         var $elf = $(this);
         if (arguments.length > 0){
@@ -363,18 +378,23 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.cashdown)
-               .keynav($.ui.mcalc.defaults.cashdownKeynav);
+        if (ui.options.cashdownType == 'percent') {
+            $(this).find('input').keynav($.ui.mcalc.defaults.fixedKeynav);
+        }
     },
     events: [
         {type: 'ready',   callback: $.ui.mcalc.inputReadyRefreshObserver},
         {type: 'refresh', callback: function(e, ui) {
-            var cd = $.format(ui.options.currencyFormat, ui._component('principal').val() * ui._component('cashdown').val()/100);
+            if (ui.options.cashdownType == 'raw') {
+                var cd = $.format('{0:s}%',  ((ui._component('cashdown').val() / ui._component('principal').val()) * 100).toFixed(2));
+            }
+            else {
+                var cd = $.format(ui.options.currencyFormat, ui._component('principal').val() * ui._component('cashdown').val()/100);
+            }
             $(this).find('small').text(' ('+ cd +')');
         }}
     ]
 });
-
-$.ui.mcalc.defaults.interestKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'interest',
@@ -390,7 +410,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.interest)
-               .keynav($.ui.mcalc.defaults.interestKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver}
@@ -429,8 +449,6 @@ $.ui.mcalc.component({
     ]
 });
 
-$.ui.mcalc.defaults.ptaxesKeynav = $.ui.mcalc.defaults.cashdownKeynav;
-
 $.ui.mcalc.component({
     name: 'ptaxes',
     tpl:  $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-ptaxes" type="text" /> % <small></small></li>', _('Property taxes')),
@@ -445,7 +463,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.ptaxes)
-               .keynav($.ui.mcalc.defaults.ptaxesKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
@@ -455,8 +473,6 @@ $.ui.mcalc.component({
         }}
     ]
 });
-
-$.ui.mcalc.defaults.insuranceKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'insurance',
@@ -472,7 +488,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.insurance)
-               .keynav($.ui.mcalc.defaults.insuranceKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
@@ -482,8 +498,6 @@ $.ui.mcalc.component({
         }}
     ]
 });
-
-$.ui.mcalc.defaults.pmiKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'pmi',
@@ -499,7 +513,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.pmi)
-               .keynav($.ui.mcalc.defaults.pmiKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
