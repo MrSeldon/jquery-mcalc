@@ -10,7 +10,6 @@
 (function($){
 // i18n
 function _(str, args) { return $.i18n('mcalc', str, args); }
-
 $.googleChart = function(chart) {
     this.url = 'http://chart.apis.google.com/chart';
     var o = [];
@@ -72,7 +71,7 @@ $.ui.mcalc.component({
             chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
             chf:  'bg,s,eeeeee',
             chdlp: 'b'
-        },
+        }
     },
     tpl: '<div class="ui-chart ui-corner-all"></div>',
     init: function(ui) {

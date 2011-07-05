@@ -1,5 +1,5 @@
 /*
-  jQuery mcalc - 0.1.0
+  jQuery mcalc - 0.1.1
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com
@@ -592,7 +592,7 @@ $.ui.mcalc.component({
 
 })(jQuery);
 /*
-  jQuery mcalc.about - 0.1.0
+  jQuery mcalc.about - 0.1.1
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com
@@ -733,7 +733,7 @@ $.ui.mcalc.component({
 
 })(jQuery);
 /*
-  jQuery mcalc.about - 0.1.0
+  jQuery mcalc.about - 0.1.1
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com
@@ -744,7 +744,6 @@ $.ui.mcalc.component({
 (function($){
 // i18n
 function _(str, args) { return $.i18n('mcalc', str, args); }
-
 $.googleChart = function(chart) {
     this.url = 'http://chart.apis.google.com/chart';
     var o = [];
@@ -806,7 +805,7 @@ $.ui.mcalc.component({
             chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
             chf:  'bg,s,eeeeee',
             chdlp: 'b'
-        },
+        }
     },
     tpl: '<div class="ui-chart ui-corner-all"></div>',
     init: function(ui) {
