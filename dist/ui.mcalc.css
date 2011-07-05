@@ -95,8 +95,8 @@ ul.ui-form label {
 
 
 .ui-mcalc-slider {
-    margin:10px 5px!important;
-    width:400px!important;
+    margin:10px 5px;
+    width:400px;
     float:left;
 }
 .ui-amortoolbar {

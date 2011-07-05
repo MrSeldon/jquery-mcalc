@@ -35,7 +35,7 @@ $.widget('ui.mcalc', {
             if ($.ui.mcalc.components[x]) {
                 var component = $.ui.mcalc.components[x];
                 if (component.defaults) {
-                    ui.options = $.extend(component.defaults, ui.options);
+                    ui.options = $.extend(true, component.defaults, ui.options);
                 }
                 if ((component.lazy && ui.options[component.name]) || !component.lazy) {
                     ui._createComponent(component);
@@ -71,14 +71,15 @@ $.widget('ui.mcalc', {
         this.data = {
             principal:          p,
             cashdown:           this._component('cashdown').val(),
+            cashdownType:       this.options.cashdownType,
             term:               this._component('term').val(),
             pmi:                this._component('pmi').val(),
             interest:           this._component('interest').val(),
             amortschedule:      this._component('amortschedule').val(),
-            yearlyInterest:     i/100,
-            monthlyInterest:    i/100/12,
+            yearlyInterest:     i / 100,
+            monthlyInterest:    i / 100 / 12,
             yearlyPeriods:      y,
-            monthlyPeriods:     y*12,
+            monthlyPeriods:     y * 12,
             propretyTax:        t,
             yearlyPropretyTax:  t/100,
             monthlyPropertyTax: t/100,
@@ -132,7 +133,12 @@ $.widget('ui.mcalc', {
             e.callback.apply(this, [event, $elf]);
         };
         this._components[ns] = arguments[0];
-        $.tpl(ns, arguments[0].tpl);
+        if ($.isFunction(arguments[0].tpl)) {
+            $.tpl(ns, arguments[0].tpl(this));
+        }
+        else {
+            $.tpl(ns, arguments[0].tpl);
+        }
         this._ui[ns] = $.tpl(ns);
         if (c.init) { c.init.apply(this._ui[ns], [this]); }
         if (c.val)  { this._ui[ns].val = c.val; }
@@ -223,7 +229,12 @@ $.widget('ui.mcalc', {
 // Calculate monthly payments
 $.ui.mcalc.calc = function() { 
     var d = this.data;
-    var p = d.principal - (d.principal * d.cashdown/100);
+    if (d.cashdownType == 'raw') {
+        var p = d.principal - d.cashdown;
+    }
+    else {
+        var p = d.principal - (d.principal * d.cashdown/100);
+    }
 
     d.yearlySubtotal  = parseFloat((p * Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) * d.yearlyInterest) / (Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) -1), 10);
     d.yearlyTotal     = parseFloat(d.yearlySubtotal + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
@@ -244,6 +255,7 @@ $.ui.mcalc.defaults = {
     form:        ['principal', 'cashdown', 'interest', 'term', 'amortschedule', 'subtotal', 'insurance', 'ptaxes', 'pmi', 'total'],
     principal:   300000, // $
     cashdown:    '10.00', // %
+    cashdownType: 'percent', // raw || percent
     interest:    '5.50', // %
     term:        30,     // years
     termValues:  [5, 10, 15, 20, 25, 30],
@@ -341,7 +353,7 @@ $.ui.mcalc.component({
 });
 
 
-$.ui.mcalc.defaults.cashdownKeynav = {
+$.ui.mcalc.defaults.fixedKeynav = {
     type: 'fixed',
     max_length: 5,
     max_digits: 2,
@@ -350,7 +362,10 @@ $.ui.mcalc.defaults.cashdownKeynav = {
 
 $.ui.mcalc.component({
     name: 'cashdown',
-    tpl:  $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-cashdown" type="text" maxlength="4" /> % <small></small></li>', _('Down payment')),
+    tpl:  function(ui){
+        return $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-cashdown" type="text" maxlength="6" /> {1:s} <small></small></li>', 
+                        _('Down payment'), (ui.options.cashdownType == 'raw' && '$' || '%'))
+    },
     val:  function(){ 
         var $elf = $(this);
         if (arguments.length > 0){
@@ -363,18 +378,23 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.cashdown)
-               .keynav($.ui.mcalc.defaults.cashdownKeynav);
+        if (ui.options.cashdownType == 'percent') {
+            $(this).find('input').keynav($.ui.mcalc.defaults.fixedKeynav);
+        }
     },
     events: [
         {type: 'ready',   callback: $.ui.mcalc.inputReadyRefreshObserver},
         {type: 'refresh', callback: function(e, ui) {
-            var cd = $.format(ui.options.currencyFormat, ui._component('principal').val() * ui._component('cashdown').val()/100);
+            if (ui.options.cashdownType == 'raw') {
+                var cd = $.format('{0:s}%',  ((ui._component('cashdown').val() / ui._component('principal').val()) * 100).toFixed(2));
+            }
+            else {
+                var cd = $.format(ui.options.currencyFormat, ui._component('principal').val() * ui._component('cashdown').val()/100);
+            }
             $(this).find('small').text(' ('+ cd +')');
         }}
     ]
 });
-
-$.ui.mcalc.defaults.interestKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'interest',
@@ -390,7 +410,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.interest)
-               .keynav($.ui.mcalc.defaults.interestKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver}
@@ -429,8 +449,6 @@ $.ui.mcalc.component({
     ]
 });
 
-$.ui.mcalc.defaults.ptaxesKeynav = $.ui.mcalc.defaults.cashdownKeynav;
-
 $.ui.mcalc.component({
     name: 'ptaxes',
     tpl:  $.format('<li class="ui-helper-clearfix"><label>{0:s}</label><input id="ui-mcalc-ptaxes" type="text" /> % <small></small></li>', _('Property taxes')),
@@ -445,7 +463,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.ptaxes)
-               .keynav($.ui.mcalc.defaults.ptaxesKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
@@ -455,8 +473,6 @@ $.ui.mcalc.component({
         }}
     ]
 });
-
-$.ui.mcalc.defaults.insuranceKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'insurance',
@@ -472,7 +488,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.insurance)
-               .keynav($.ui.mcalc.defaults.insuranceKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
@@ -482,8 +498,6 @@ $.ui.mcalc.component({
         }}
     ]
 });
-
-$.ui.mcalc.defaults.pmiKeynav = $.ui.mcalc.defaults.cashdownKeynav;
 
 $.ui.mcalc.component({
     name: 'pmi',
@@ -499,7 +513,7 @@ $.ui.mcalc.component({
         $(this).find('input')
                .width(35)
                .val(ui.options.pmi)
-               .keynav($.ui.mcalc.defaults.pmiKeynav);
+               .keynav($.ui.mcalc.defaults.fixedKeynav);
     },
     events: [
         {type: 'ready', callback: $.ui.mcalc.inputReadyRefreshObserver},
@@ -731,43 +745,6 @@ $.ui.mcalc.component({
 // i18n
 function _(str, args) { return $.i18n('mcalc', str, args); }
 
-$.extend($.ui.mcalc.defaults, {
-    interestChartType: ['p3', 'p'],
-    interestChart: {
-        chs:  '290x160',
-        cht:  'p3',
-        chco: 'F7AF3A,CC3300,1C94C4',
-        chma: '10,0,0,20|80,20',
-        chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
-        chf:  'bg,s,eeeeee',
-        chdlp: 'b'
-    },
-    amortChart: {
-        chs:  '270x160',
-        cht:  'lc',
-        chco: 'F7AF3A,CC3300',
-        chma: '10,0,0,20|80,20',
-        chdl: $.format('{0:s}|{1:s}', _('Principal'), _('Interest')),
-        chxt: 'x,y',
-        chg:  '20,50,1,5',
-        chf:  'bg,s,eeeeee',
-        chm:  'D,F7AF3A,0,0,2|D,CC3300,1,0,2',
-        chdlp: 'b'
-    },
-    balanceChart: {
-        cht:  'lc',
-        chls: '2.0,0.0,0.0',
-        chxt: 'x,y',
-        chdl: _('Balance'),
-        chs:  '288x160',
-        chg:  '20,50,1,5',
-        chf:  'bg,s,eeeeee',
-        chma: '10,0,0,20|80,20',
-        chdlp: 'b'
-    }
-});
-
-
 $.googleChart = function(chart) {
     this.url = 'http://chart.apis.google.com/chart';
     var o = [];
@@ -815,17 +792,25 @@ $.ui.mcalc.extendedEncode = function(val) {
 
 $.ui.mcalc.component({
     name: 'interestchart',
-    help: _('Click on the char to switch view mode.'),
+    help: _('Click on the chart to switch view mode.'),
     lazy: true,
     defaults: { 
         interestchart: true,
         interestchartSmartResize: true,
-        interestchartType: ['p3', 'p']
+        interestChartType: ['p3', 'p'],
+        interestChart: {
+            chs:  '290x160',
+            cht:  'p3',
+            chco: 'F7AF3A,CC3300,1C94C4',
+            chma: '10,0,0,20|80,20',
+            chdl: $.format('{0:s}|{1:s}|{2:s}', _('Principal'), _('Interest'), _('Others')),
+            chf:  'bg,s,eeeeee',
+            chdlp: 'b'
+        },
     },
     tpl: '<div class="ui-chart ui-corner-all"></div>',
     init: function(ui) {
-        ui._interestChartType = $.isArray(ui.options.interestChartType) 
-            && ui.options.interestChartType[0] || ui.options.interestChartType;
+        ui._interestChartType = ui.options.interestChart.cht || ui.options.interestChartType[0];
     },
     events: [
         {type: 'ready', callback: function(e, ui){
@@ -866,10 +851,9 @@ $.ui.mcalc.component({
                     });
                 }
             }
-            
-            var chart = $.googleChart($.extend(ui.options.interestChart, {
+            var chart = $.googleChart($.extend({}, ui.options.interestChart, {
                 chd: $.format('t:{0:s},{1:s},{2:s}', principal, interest, other),
-                cht: ui._interestChartType
+                cht: ''+ui._interestChartType // strange bug..
             }));
 
             ui._component('interestchart').css({
@@ -885,7 +869,32 @@ $.ui.mcalc.component({
 $.ui.mcalc.component({
     name: 'amortchart',
     lazy: true,
-    defaults: { amortchart: true },
+    defaults: { 
+        amortchart: true,
+        amortChart: {
+            chs:  '270x160',
+            cht:  'lc',
+            chco: 'F7AF3A,CC3300',
+            chma: '10,0,0,20|80,20',
+            chdl: $.format('{0:s}|{1:s}', _('Principal'), _('Interest')),
+            chxt: 'x,y',
+            chg:  '20,50,1,5',
+            chf:  'bg,s,eeeeee',
+            chm:  'D,F7AF3A,0,0,2|D,CC3300,1,0,2',
+            chdlp: 'b'
+        },
+        balanceChart: {
+            cht:  'lc',
+            chls: '2.0,0.0,0.0',
+            chxt: 'x,y',
+            chdl: _('Balance'),
+            chs:  '288x160',
+            chg:  '20,50,1,5',
+            chf:  'bg,s,eeeeee',
+            chma: '10,0,0,20|80,20',
+            chdlp: 'b'
+        }
+    },
     tpl: [
     '<div class="ui-amortcharts">',
         '<div class="ui-amortcharts-amort ui-chart"></div>',
