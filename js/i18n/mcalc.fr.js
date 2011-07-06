@@ -2,7 +2,7 @@ $.i18n('fr.mcalc', {
     'Calculator': 'Calculatrice',
     'Principal':  'Principale',
     'Term':       'Terme',
-    'Schedule':   'Payements',
+    'Schedule':   'Paimements',
     'Down payment': 'Acompte',
     'Property taxes': 'Taxes de propri&#233;t&#233;',
     'Monthly':    'Mensuel',
