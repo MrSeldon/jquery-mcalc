@@ -1,5 +1,5 @@
 /*
-  jQuery mcalc - 0.1.1
+  jQuery mcalc - 0.2.0
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com
@@ -87,7 +87,12 @@ $.widget('ui.mcalc', {
             monthlyInsurance:   p * s / 100 / 12
         };
         this._log('mcalc.recalc: %o', this.data);
-        this.options.calc.apply(this);
+        this._updateTotals(this.calc(this.data));
+    },
+
+    calc: function(){
+        return $.ui.mcalc.formulas[this.options.formula]['calc']
+            .apply(document, [this.data])
     },
 
     _log: function() {
@@ -226,44 +231,20 @@ $.widget('ui.mcalc', {
     }
 });
 
-// Calculate monthly payments
-$.ui.mcalc.calc = function() { 
-    var d = this.data;
-    if (d.cashdownType == 'raw') {
-        var p = d.principal - d.cashdown;
-    }
-    else {
-        var p = d.principal - (d.principal * d.cashdown/100);
-    }
-
-    d.yearlySubtotal  = parseFloat((p * Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) * d.yearlyInterest) / (Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) -1), 10);
-    d.yearlyTotal     = parseFloat(d.yearlySubtotal + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
-
-    d.monthlySubtotal = parseFloat((p * Math.pow(1 + d.monthlyInterest, d.monthlyPeriods) * d.monthlyInterest) / (Math.pow(1 + d.monthlyInterest, d.monthlyPeriods) -1), 10);
-    d.monthlyTotal    = parseFloat(d.monthlySubtotal + ((d.monthlyPropertyTax * p)/12) + d.monthlyInsurance + d.pmi, 10);
-
-    var totals = (d.amortschedule == 'yearly')
-        ? [d.yearlyTotal,  d.yearlySubtotal]
-        : [d.monthlyTotal, d.monthlySubtotal];
-
-    this._updateTotals.apply(this, totals);
-
-};
-
 $.ui.mcalc.defaults = {
     debug:       false,
+    formula:     'can',
     form:        ['principal', 'cashdown', 'interest', 'term', 'amortschedule', 'subtotal', 'insurance', 'ptaxes', 'pmi', 'total'],
-    principal:   300000, // $
-    cashdown:    '10.00', // %
-    cashdownType: 'percent', // raw || percent
-    interest:    '5.50', // %
-    term:        30,     // years
+    principal:   300000,        // $
+    cashdown:    '10.00',       // %
+    cashdownType: 'percent',    // raw || percent
+    interest:    '5.50',        // %
+    term:        30,            // years
     termValues:  [5, 10, 15, 20, 25, 30],
-    ptaxes:      '1.50',    // %
-    insurance:   '0.50',    // %
-    pmi:         '80.00',     // $
-    pmiThershold: 20,    // %
-    calc:        $.ui.mcalc.calc,
+    ptaxes:      '1.50',        // %
+    insurance:   '0.50',        // %
+    pmi:         '80.00',       // $
+    pmiThershold: 20,           // %
     currencyFormat: _('${0:C}'),
     showFieldHelp: true,
     fieldUpdatedEffect: 'highlight',
@@ -285,6 +266,9 @@ $.ui.mcalc.inputReadyRefreshObserver = function(e, ui){
         ui._trigger('refresh');
     }, 1.0);
 };
+
+$.ui.mcalc.formulas = {};
+$.ui.mcalc.formula  = function(f) { $.ui.mcalc.formulas[f.name] = f; };
 
 $.ui.mcalc.components = {};
 $.ui.mcalc.component  = function(c) { $.ui.mcalc.components[c.name] = c; };
@@ -590,9 +574,71 @@ $.ui.mcalc.component({
     ]
 });
 
+
+
+$.ui.mcalc.formula({
+    // Calculate monthly payments (Canadian formula)
+    name: 'can',
+    calc: function(d) { 
+        var p = (d.cashdownType == 'raw') && d.principal - d.cashdown || d.principal - (d.principal * d.cashdown/100);
+        var c = function(p, freq, interest, term) {
+            var ir = Math.pow((1 + (Math.pow((1 + (interest / 2)), 2) - 1)), (1 / freq)) -1;
+            var q  = Math.pow(1 + ir, parseFloat(freq * term));
+            return Math.round(((p * q) / (q - 1)) * ir * 100) / 100;
+        };
+
+        d.monthlySubtotal = c(p, 12, d.yearlyInterest, d.term);
+        d.yearlySubtotal  = c(p, 1, d.yearlyInterest, d.term);
+
+        d.monthlyTotal = parseFloat(d.monthlySubtotal + (d.monthlyPropertyTax * p) / 12 + d.monthlyInsurance + d.pmi, 10);
+
+        d.yearlyTotal = parseFloat(d.yearlySubtotal + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
+
+        return (d.amortschedule == 'yearly')
+            ? [d.yearlyTotal,  d.yearlySubtotal]
+            : [d.monthlyTotal, d.monthlySubtotal];
+    }
+});
+
+
+$.ui.mcalc.formula({
+    // Calculate monthly payments (United States formula)
+    name: 'usa',
+
+    calc: function() { 
+        var d = this.data;
+        var p = (d.cashdownType == 'raw') && d.principal - d.cashdown || d.principal - (d.principal * d.cashdown/100);
+
+        d.yearlySubtotal = parseFloat(
+            (p * Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) * d.yearlyInterest) / (Math.pow(1 + d.yearlyInterest, d.yearlyPeriods) -1)
+        , 10);
+
+        d.yearlyTotal = parseFloat(
+            d.yearlySubtotal 
+            + (d.yearlyPropretyTax * p) 
+            + d.yearlyInsurance 
+            + (d.pmi * 12)
+        , 10);
+
+        d.monthlySubtotal = parseFloat(
+            (p * Math.pow(1 + d.monthlyInterest, d.monthlyPeriods) * d.monthlyInterest) / (Math.pow(1 + d.monthlyInterest, d.monthlyPeriods) -1)
+        , 10);
+
+        d.monthlyTotal = parseFloat(
+            d.monthlySubtotal 
+            + (d.monthlyPropertyTax * p) / 12
+            + d.monthlyInsurance + d.pmi
+        , 10);
+
+        return (d.amortschedule == 'yearly')
+            ? [d.yearlyTotal,  d.yearlySubtotal]
+            : [d.monthlyTotal, d.monthlySubtotal]
+    }
+});
+
 })(jQuery);
 /*
-  jQuery mcalc.about - 0.1.1
+  jQuery mcalc.about - 0.2.0
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com
@@ -733,7 +779,7 @@ $.ui.mcalc.component({
 
 })(jQuery);
 /*
-  jQuery mcalc.about - 0.1.1
+  jQuery mcalc.about - 0.2.0
 
   (c) Maxime Haineault <haineault@gmail.com> 
   http://haineault.com

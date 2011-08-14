@@ -1,5 +1,5 @@
 title: jquery.mcalc
-version: 0.1.1
+version: 0.2.0
 svnrev: false 
 name: "mcalcall"
 dest: dist/
@@ -7,6 +7,8 @@ modules:
   - file: js/jquery.mcalc.js
     name: "mcalc"
     depends:
+      - src: js/jquery.mcalc.calc-ca.js
+      # src: js/jquery.mcalc.calc-us.js
       - src: js/jquery.jqprint.js
       - src: js/jquery.mcalc.amortization.js
       - src: js/jquery.mcalc.summary.js
@@ -20,6 +22,8 @@ modules:
     title: jquery.mcalc.lite
     destfile: jquery.mcalc.lite.js
     depends:
+     - src: js/jquery.mcalc.calc-ca.js
+     # src: js/jquery.mcalc.calc-us.js
      - src: js/jquery.mcalc.amortization.js
      - src: js/jquery.mcalc.charts.js
   
