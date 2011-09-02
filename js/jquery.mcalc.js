@@ -77,14 +77,23 @@ $.widget('ui.mcalc', {
             interest:           this._component('interest').val(),
             amortschedule:      this._component('amortschedule').val(),
             yearlyInterest:     i / 100,
+            biYearlyInterest:   i / 100 / 2,
+            biMonthlyInterest:  i / 100 / 6,
             monthlyInterest:    i / 100 / 12,
+            weeklyInterest:     i / 100 / 52,
             yearlyPeriods:      y,
+            biYearlyPeriods:    y * 2,
+            biMonthlyPeriods:   y * 6,
             monthlyPeriods:     y * 12,
+            weeklyPeriods:      y * 52,
             propretyTax:        t,
-            yearlyPropretyTax:  t/100,
-            monthlyPropertyTax: t/100,
+            yearlyPropretyTax:  t / 100,
+            monthlyPropertyTax: t / 100,
             yearlyInsurance:    p * s / 100,
-            monthlyInsurance:   p * s / 100 / 12
+            biYearlyInsurance:  p * s / 100 / 2,
+            biMonthlyInsurance: p * s / 100 / 6,
+            monthlyInsurance:   p * s / 100 / 12,
+            weeklyInsurance:    p * s / 100 / 52,
         };
         this._log('mcalc.recalc: %o', this.data);
         this._updateTotals(this.calc(this.data));
@@ -262,9 +271,9 @@ $.ui.mcalc.getVal = function(){
 };
 
 $.ui.mcalc.inputReadyRefreshObserver = function(e, ui){
-    $(this).find('input').delayedObserver(function(e) {
-        ui._trigger('refresh');
-    }, 1.0);
+    $(this).find('input').delayedObserver(function(e) { 
+        ui._trigger('refresh') 
+    }, 1.0)
 };
 
 $.ui.mcalc.formulas = {};
@@ -519,18 +528,19 @@ $.ui.mcalc.component({
     tpl:  [
         '<li class="ui-helper-clearfix">',
             $.format('<label>{0:s}</label> ', _('Schedule')),
-            $.format('<label style="display:inline;float:none;"><input type="radio" name="ui-amortschedule" value="monthly" checked> {0:s}</label>', _('Monthly')),
-            $.format('<label style="display:inline;float:none;"><input type="radio" name="ui-amortschedule" value="yearly"> {0:s}</label>', _('Yearly')),
+            '<select name="ui-amortschedule">',
+                $.format('<option value="annual">{0:s}</option>', _('Annual')),
+                $.format('<option value="biannual">{0:s}</option>', _('Biannual')),
+                $.format('<option value="monthly" checked>{0:s}</option>', _('Monthly')),
+                $.format('<option value="weekly">{0:s}</option>', _('Weekly')),
+            '</select>',
         '</li>'
     ],
     val:  function(){
-        if (arguments.length > 0){
-            return $(this).find('input').val.apply(this, arguments);
-        }
-        return $(this).find('input:checked').val();
+        return $(this).find('select').val();
     },
     events: [
-        {type: 'change', selector: 'input', callback: function(e, ui){
+        {type: 'change', selector: 'select', callback: function(e, ui){
             ui._trigger('refresh');
         }}
     ]
@@ -587,16 +597,26 @@ $.ui.mcalc.formula({
             return Math.round(((p * q) / (q - 1)) * ir * 100) / 100;
         };
 
-        d.monthlySubtotal = c(p, 12, d.yearlyInterest, d.term);
-        d.yearlySubtotal  = c(p, 1, d.yearlyInterest, d.term);
-
-        d.monthlyTotal = parseFloat(d.monthlySubtotal + (d.monthlyPropertyTax * p) / 12 + d.monthlyInsurance + d.pmi, 10);
-
-        d.yearlyTotal = parseFloat(d.yearlySubtotal + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
-
-        return (d.amortschedule == 'yearly')
-            ? [d.yearlyTotal,  d.yearlySubtotal]
-            : [d.monthlyTotal, d.monthlySubtotal];
+        if (d.amortschedule == 'annual') {
+            d.yearlySubtotal    = c(p, 1,  d.yearlyInterest, d.term);
+            d.yearlyTotal       = parseFloat(d.yearlySubtotal   + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
+            return [d.yearlyTotal,  d.yearlySubtotal]
+        }
+        else if (d.amortschedule == 'biannual') {
+            d.biYearlySubtotal  = c(p, 2,  d.yearlyInterest, d.term);
+            d.biYearlyTotal     = parseFloat(d.biYearlySubtotal + (d.yearlyPropretyTax * p) / 2 + d.biYearlyInsurance + (d.pmi * 6), 10);
+            return [d.biYearlyTotal, d.biYearlySubtotal]
+        }
+        else if (d.amortschedule == 'monthly') {
+            d.monthlySubtotal   = c(p, 12, d.yearlyInterest, d.term);
+            d.monthlyTotal      = parseFloat(d.monthlySubtotal  + (d.yearlyPropretyTax * p) / 12 + d.monthlyInsurance + d.pmi, 10);
+            return [d.monthlyTotal, d.monthlySubtotal]
+        }
+        else if (d.amortschedule == 'weekly') {
+            d.weeklySubtotal    = c(p, 52, d.yearlyInterest, d.term);
+            d.weeklyTotal       = parseFloat(d.weeklySubtotal   + (d.yearlyPropretyTax * p) / 52 + d.weeklyInsurance + d.pmi / 4, 10);
+            return [d.weeklyTotal, d.weeklySubtotal]
+        }
     }
 });
 

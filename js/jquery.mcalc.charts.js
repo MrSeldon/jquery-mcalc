@@ -91,22 +91,33 @@ $.ui.mcalc.component({
             }
         }},
         {type: 'refresh', callback: function(e, ui){
-            var subtotal = ui.data.yearlySubtotal;
-            var total = ui.data.yearlyTotal;
+            var subtotal, total, principal, interest, other, size, pr, chart;
 
-            if (ui.data.amortschedule == 'monthly') {
-                subtotal = ui.data.monthlySubtotal;
-                total = ui.data.monthlyTotal;
+            if (ui.data.amortschedule == 'annual') {
+                subtotal = ui.data.yearlySubtotal;
+                total    = ui.data.yearlyTotal;
+            }
+            else if (ui.data.amortschedule == 'biannual') {
+                subtotal = ui.data.biYearlySubtotal * 2;
+                total    = ui.data.biYearlyTotal * 2;
+            }
+            else if (ui.data.amortschedule == 'monthly') {
+                subtotal = ui.data.monthlySubtotal * 12;
+                total    = ui.data.monthlyTotal * 12;
+            }
+            else if (ui.data.amortschedule == 'weekly') {
+                subtotal = ui.data.weeklySubtotal * 52;
+                total    = ui.data.weeklyTotal * 52;
             }
 
-            var principal = Math.abs(Math.round((ui.data.principal / total) * 100));
-            var interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
-            var other     = Math.abs(Math.round(((total - subtotal) / total) * 100));
-            var size      = ui.options.interestChart.chs.split('x');
+            principal = Math.abs(Math.round((ui.data.principal / total) * 100));
+            interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
+            other     = Math.abs(Math.round(((total - subtotal) / total) * 100));
+            size      = ui.options.interestChart.chs.split('x');
             
             // Sensible size adjustment (used mainly for widget vertion)
             if (ui._getActiveTab() == 'calculator') {
-                var pr = ui._component('interestchart').parent().parent();
+                pr = ui._component('interestchart').parent().parent();
                 size = $.map(ui.options.interestChart.chs.split('x'), 
                            function(i){ return parseInt(i, 10); });
 
@@ -116,7 +127,7 @@ $.ui.mcalc.component({
                     });
                 }
             }
-            var chart = $.googleChart($.extend({}, ui.options.interestChart, {
+            chart = $.googleChart($.extend({}, ui.options.interestChart, {
                 chd: $.format('t:{0:s},{1:s},{2:s}', principal, interest, other),
                 cht: ''+ui._interestChartType // strange bug..
             }));
