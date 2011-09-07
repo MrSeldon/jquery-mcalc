@@ -93,23 +93,8 @@ $.ui.mcalc.component({
         {type: 'refresh', callback: function(e, ui){
             var subtotal, total, principal, interest, other, size, pr, chart;
 
-            if (ui.data.amortschedule == 'annual') {
-                subtotal = ui.data.yearlySubtotal;
-                total    = ui.data.yearlyTotal;
-            }
-            else if (ui.data.amortschedule == 'biannual') {
-                subtotal = ui.data.biYearlySubtotal * 2;
-                total    = ui.data.biYearlyTotal * 2;
-            }
-            else if (ui.data.amortschedule == 'monthly') {
-                subtotal = ui.data.monthlySubtotal * 12;
-                total    = ui.data.monthlyTotal * 12;
-            }
-            else if (ui.data.amortschedule == 'weekly') {
-                subtotal = ui.data.weeklySubtotal * 52;
-                total    = ui.data.weeklyTotal * 52;
-            }
-
+            subtotal  = ui.data.subtotal;
+            total     = ui.data.total;
             principal = Math.abs(Math.round((ui.data.principal / total) * 100));
             interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
             other     = Math.abs(Math.round(((total - subtotal) / total) * 100));
@@ -188,14 +173,11 @@ $.ui.mcalc.component({
 
             for (var x = 0; x < ui._amortabledata.length;x++) {
                 var r = ui._amortabledata[x];
-                if (ui.data.amortschedule == 'monthly') {
-                    o.p.push(Math.round((r.principal * 12 / p) * 100 * 10));
-                    o.i.push(Math.round((r.interest  * 12 / p) * 100 * 10));
-                    x = x + 12;
-                }
-                else {
-                    o.p.push(Math.round((r.principal / p) * 100 * 10));
-                    o.i.push(Math.round((r.interest  / p) * 100 * 10));
+                var as   = ui._component('amortschedule').val();
+                o.p.push(Math.round((r.principal * ui.data[as].frequency / p) * 100 * 10));
+                o.i.push(Math.round((r.interest  * ui.data[as].frequency / p) * 100 * 10));
+                if (ui.data[as].frequency > 1) {
+                    x = x + ui.data[as].frequency;
                 }
             }
 

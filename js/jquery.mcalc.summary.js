@@ -85,7 +85,8 @@ $.ui.mcalc.component({
             }
 
             var term = $.format('{0:d} months', ui.data.term * 12);
-            if (ui.data.amortschedule == 'yearly') {
+            
+            if (ui.data.amortschedule == 'annual') {
                 term = $.format('{0:d} years', ui.data.term);
             }
             
@@ -99,27 +100,27 @@ $.ui.mcalc.component({
 
             
             $.tpl('summary.yearlyPayments', {
-                yearlyPeriods: ui.data.yearlyPeriods,
-                yearlyPayment: $.format(ui.options.currencyFormat, ui.data.yearlySubtotal),
-                yearlyTotal: $.format(ui.options.currencyFormat, ui.data.yearlySubtotal * ui.data.yearlyPeriods),
-                yearlyPaymentTax: $.format(ui.options.currencyFormat, ui.data.yearlyTotal - ui.data.yearlySubtotal - ui.data.yearlyInsurance),
-                yearlyTotalTax: $.format(ui.options.currencyFormat, (ui.data.yearlyTotal - ui.data.yearlySubtotal - ui.data.yearlyInsurance) * ui.data.yearlyPeriods),
-                insurance:  $.format(ui.options.currencyFormat, ui.data.yearlyInsurance),
-                yearlyTotalInsurance: $.format(ui.options.currencyFormat, ui.data.yearlyInsurance * ui.data.yearlyPeriods),
-                yearlyTotalPayment: $.format(ui.options.currencyFormat, ui.data.yearlyTotal),
-                yearlyGrandTotal: $.format(ui.options.currencyFormat, (ui.data.yearlyTotal * ui.data.yearlyPeriods) + (ui.data.yearlyInsurance * ui.data.yearlyPeriods))
+                yearlyPeriods: ui.data.annual.periods,
+                yearlyPayment: $.format(ui.options.currencyFormat, ui.data.subtotal),
+                yearlyTotal: $.format(ui.options.currencyFormat, ui.data.subtotal * ui.data.annual.periods),
+                yearlyPaymentTax: $.format(ui.options.currencyFormat, ui.data.subtotal - ui.data.subtotal - ui.data.annual.insurance),
+                yearlyTotalTax: $.format(ui.options.currencyFormat, (ui.data.total - ui.data.subtotal - ui.data.annual.insurance) * ui.data.annual.periods),
+                insurance:  $.format(ui.options.currencyFormat, ui.data.annual.insurance),
+                yearlyTotalInsurance: $.format(ui.options.currencyFormat, ui.data.annual.insurance * ui.data.annual.periods),
+                yearlyTotalPayment: $.format(ui.options.currencyFormat, ui.data.total),
+                yearlyGrandTotal: $.format(ui.options.currencyFormat, (ui.data.total * ui.data.annual.periods) + (ui.data.annual.insurance * ui.data.annual.periods))
             }).appendTo(this);
 
            $.tpl('summary.monthlyPayments', {
-                monthlyPeriods: ui.data.monthlyPeriods,
-                monthlyPayment: $.format(ui.options.currencyFormat, ui.data.monthlySubtotal),
-                monthlyTotal: $.format(ui.options.currencyFormat, ui.data.monthlySubtotal * ui.data.monthlyPeriods),
-                monthlyPaymentTax: $.format(ui.options.currencyFormat, ui.data.monthlyTotal - ui.data.monthlySubtotal - ui.data.monthlyInsurance),
-                monthlyTotalTax: $.format(ui.options.currencyFormat, (ui.data.monthlyTotal - ui.data.monthlySubtotal - ui.data.monthlyInsurance) * ui.data.monthlyPeriods),
-                insurance:  $.format(ui.options.currencyFormat, ui.data.monthlyInsurance),
-                monthlyTotalInsurance: $.format(ui.options.currencyFormat, ui.data.monthlyInsurance * ui.data.monthlyPeriods),
-                monthlyTotalPayment: $.format(ui.options.currencyFormat, ui.data.monthlyTotal),
-                monthlyGrandTotal: $.format(ui.options.currencyFormat, (ui.data.monthlyTotal * ui.data.monthlyPeriods) + (ui.data.monthlyInsurance * ui.data.monthlyPeriods))
+                monthlyPeriods: ui.data.monthly.periods,
+                monthlyPayment: $.format(ui.options.currencyFormat, ui.data.subtotal),
+                monthlyTotal: $.format(ui.options.currencyFormat, ui.data.subtotal * ui.data.monthly.periods),
+                monthlyPaymentTax: $.format(ui.options.currencyFormat, ui.data.total - ui.data.Subtotal - ui.data.monthly.insurance),
+                monthlyTotalTax: $.format(ui.options.currencyFormat, (ui.data.total - ui.data.subtotal - ui.data.monthly.insurance) * ui.data.monthly.periods),
+                insurance:  $.format(ui.options.currencyFormat, ui.data.monthly.insurance),
+                monthlyTotalInsurance: $.format(ui.options.currencyFormat, ui.data.monthly.insurance * ui.data.monthly.periods),
+                monthlyTotalPayment: $.format(ui.options.currencyFormat, ui.data.total),
+                monthlyGrandTotal: $.format(ui.options.currencyFormat, (ui.data.total * ui.data.monthly.periods) + (ui.data.monthly.insurance * ui.data.monthly.periods))
            }).appendTo(this);
            
         }}

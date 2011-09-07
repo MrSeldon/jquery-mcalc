@@ -68,33 +68,60 @@ $.widget('ui.mcalc', {
         var y = parseInt(this._component('term').val(), 10);
         var t = parseFloat(this._component('ptaxes').val(), 10);
         var s = parseFloat(this._component('insurance').val(), 10);
+        var c = parseFloat(this._component('cashdown').val(), 10);
+        var pmi = this._component('pmi').val();
         this.data = {
             principal:          p,
-            cashdown:           this._component('cashdown').val(),
+            cashdown:           c,
             cashdownType:       this.options.cashdownType,
             term:               this._component('term').val(),
-            pmi:                this._component('pmi').val(),
+            pmi:                pmi,
             interest:           this._component('interest').val(),
             amortschedule:      this._component('amortschedule').val(),
-            yearlyInterest:     i / 100,
-            biYearlyInterest:   i / 100 / 2,
-            biMonthlyInterest:  i / 100 / 6,
-            monthlyInterest:    i / 100 / 12,
-            weeklyInterest:     i / 100 / 52,
-            yearlyPeriods:      y,
-            biYearlyPeriods:    y * 2,
-            biMonthlyPeriods:   y * 6,
-            monthlyPeriods:     y * 12,
-            weeklyPeriods:      y * 52,
-            propretyTax:        t,
-            yearlyPropretyTax:  t / 100,
-            monthlyPropertyTax: t / 100,
-            yearlyInsurance:    p * s / 100,
-            biYearlyInsurance:  p * s / 100 / 2,
-            biMonthlyInsurance: p * s / 100 / 6,
-            monthlyInsurance:   p * s / 100 / 12,
-            weeklyInsurance:    p * s / 100 / 52,
+            propertyTax:        t,
+            loanAmount:         (this.options.cashdownType == 'raw') && p - c || p - (p * c / 100),
+            annual: {
+                frequency:      1,
+                interest:       i / 100,
+                periods:        y,
+                propertyTax:    t / 100,
+                insurance:      p * s / 100,
+                pmi:            pmi * 12
+            },
+            biannual: {
+                frequency:      2,
+                interest:       i / 100,
+                periods:        y * 2,
+                propertyTax:    t / 100,
+                insurance:      p * s / 100 / 2,
+                pmi:            pmi * 6
+            },
+            monthly: {
+                frequency:      12,
+                interest:       i / 100,
+                periods:        y * 12,
+                propertyTax:    t / 100,
+                insurance:      p * s / 100 / 12,
+                pmi:            pmi
+            },
+            bimonthly: {
+                frequency:      24,
+                interest:       i / 100,
+                periods:        y * 24,
+                propertyTax:    t / 100,
+                insurance:      p * s / 100 / 24,
+                pmi:            pmi / 2
+            },
+            weekly: {
+                frequency:      52,
+                interest:       i / 100,
+                periods:        y * 52,
+                propertyTax:    t / 100,
+                insurance:      p * s / 100 / 52,
+                pmi:            pmi / 4
+            }
         };
+
         this._log('mcalc.recalc: %o', this.data);
         this._updateTotals(this.calc(this.data));
     },
@@ -597,32 +624,18 @@ $.ui.mcalc.formula({
             return Math.round(((p * q) / (q - 1)) * ir * 100) / 100;
         };
 
-        if (d.amortschedule == 'annual') {
-            d.yearlySubtotal    = c(p, 1,  d.yearlyInterest, d.term);
-            d.yearlyTotal       = parseFloat(d.yearlySubtotal   + (d.yearlyPropretyTax * p) + d.yearlyInsurance + (d.pmi * 12), 10);
-            return [d.yearlyTotal,  d.yearlySubtotal]
-        }
-        else if (d.amortschedule == 'biannual') {
-            d.biYearlySubtotal  = c(p, 2,  d.yearlyInterest, d.term);
-            d.biYearlyTotal     = parseFloat(d.biYearlySubtotal + (d.yearlyPropretyTax * p) / 2 + d.biYearlyInsurance + (d.pmi * 6), 10);
-            return [d.biYearlyTotal, d.biYearlySubtotal]
-        }
-        else if (d.amortschedule == 'monthly') {
-            d.monthlySubtotal   = c(p, 12, d.yearlyInterest, d.term);
-            d.monthlyTotal      = parseFloat(d.monthlySubtotal  + (d.yearlyPropretyTax * p) / 12 + d.monthlyInsurance + d.pmi, 10);
-            return [d.monthlyTotal, d.monthlySubtotal]
-        }
-        else if (d.amortschedule == 'weekly') {
-            d.weeklySubtotal    = c(p, 52, d.yearlyInterest, d.term);
-            d.weeklyTotal       = parseFloat(d.weeklySubtotal   + (d.yearlyPropretyTax * p) / 52 + d.weeklyInsurance + d.pmi / 4, 10);
-            return [d.weeklyTotal, d.weeklySubtotal]
-        }
+        var amort  = d[d.amortschedule]
+        d.subtotal = c(p, amort.frequency,  amort.interest, d.term);
+        d.total    = parseFloat(d.subtotal + (amort.propertyTax * p) / amort.frequency + amort.insurance + amort.pmi, 10);
+
+        return [d.subtotal, d.total]
     }
 });
 
 
 $.ui.mcalc.formula({
     // Calculate monthly payments (United States formula)
+    // WARNING: BROKEN (see canadian calc for update path)
     name: 'usa',
 
     calc: function() { 

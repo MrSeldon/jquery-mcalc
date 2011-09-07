@@ -31,17 +31,17 @@ $.ui.mcalc.component({
 
         // on refresh
         ui._setPermalink = function() {
-            var as   = ui._component('amortschedule').val();
+            var as   = ui.data.amortschedule;
             var hash = '#mcalc;{p:s},{i:s},{tm:s},{as:s},{hi:s},{pt:s},{ct:s},{tb:s}';
             var url  = '{protocol:s}//{host:s}{path:s}';
             var link = $.format(url, { protocol: window.location.protocol, host: window.location.host, path: window.location.pathname });
             var data = $.format(hash, {
                 p: ui.data.principal, 
-                i: parseFloat((ui.data.monthlyInterest*100*12).toFixed(2), 10),
+                i: parseFloat((ui.data[as].interest*100).toFixed(2), 10),
                 tm: ui._component('term').val(),
                 as: as,
-                hi: as == 'yearly' && ui.data.yearlyInsurance   || ui.data.monthlyInsurance,
-                pt: as == 'yearly' && ui.data.yearlyPropretyTax || ui.data.monthlyPropertyTax,
+                hi: as == ui.data[as].insurance,
+                pt: as == ui.data[as].propertyTax,
                 ct: ui._interestChartType,
                 tb: ui._getActiveTabId()
             });
