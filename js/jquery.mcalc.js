@@ -123,7 +123,7 @@ $.widget('ui.mcalc', {
         };
 
         this._log('mcalc.recalc: %o', this.data);
-        this._updateTotals(this.calc(this.data));
+        this._updateTotals.apply(this, this.calc(this.data));
     },
 
     calc: function(){
@@ -216,7 +216,8 @@ $.widget('ui.mcalc', {
         var ns = arguments[0] + '.component';
         return this._ui[ns] || jQuery();
     },
-    _updateTotals: function(total, subtotal) {
+    _updateTotals: function(subtotal, total) {
+        console.log('totals', total, subtotal) 
         var effectArgs = [this.options.fieldUpdatedEffect, this.options.fieldUpdatedEffectOptions, this.options.fieldUpdatedEffectDuration, 
             function(){
                 $(this).css('backgroundColor', 'transparent');
