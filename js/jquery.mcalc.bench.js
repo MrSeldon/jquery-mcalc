@@ -1,3 +1,12 @@
+/*
+  jQuery mcalc.about - @VERSION
+
+  (c) Maxime Haineault <haineault@gmail.com> 
+  http://haineault.com - http://motion-m.ca
+
+  License: MIT License (http://www.opensource.org/licenses/mit-license.php)
+*/
+
 $(function(){
     var opt = {};
     var plugins = ['amortable', 'summary', 'about', 'charts', 'permalink', 'charteditor', 'summary-print'];

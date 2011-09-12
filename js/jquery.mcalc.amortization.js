@@ -2,9 +2,9 @@
   jQuery mcalc.about - @VERSION
 
   (c) Maxime Haineault <haineault@gmail.com> 
-  http://haineault.com
+  http://haineault.com - http://motion-m.ca
 
-  License: Not available yet.
+  License: MIT License (http://www.opensource.org/licenses/mit-license.php)
 */
 
 (function($){
@@ -62,6 +62,8 @@ $.ui.mcalc.amortableCalc = function() {
     var balance     = principal;
     var payment     = this.data.total;
     var periodEnd   = year * frequency;
+    
+    console.log(this.data.subtotal, this.data.total);
 
     var periodStart = periodEnd - (this.data[schedule].frequency - 1);
     for (period = 1; period <= periods; period++) {

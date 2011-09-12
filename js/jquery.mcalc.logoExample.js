@@ -2,19 +2,19 @@
   jQuery mcalc.logoExample - @VERSION
 
   (c) Maxime Haineault <haineault@gmail.com> 
-  http://haineault.com
+  http://haineault.com - http://motion-m.ca
 
-  License: Not available yet.
+  License: MIT License (http://www.opensource.org/licenses/mit-license.php)
 */
 
 $.ui.mcalc.component({
     name: 'logoExample',
     lazy: true,
-    help: 'Get FHA Loan information including FHA Refinance information and find the FHA lenders that can offer the lowest rates.',
+    help: 'jQuery.mcalc is sponsored by Motion Média, a company that provide a wide variety of multimedia services for businesses and organizations.',
     defaults: { 
         logoExample:      true,
-        logoExampleUrl:   'http://www.mortgageloanplace.com/',
-        logoExampleSrc:   'img/mlp-logo.png',
+        logoExampleUrl:   'http://motion-m.ca/',
+        logoExampleSrc:   'img/motion-media.png',
         logoExampleTitle: '',
         logoExampleAlt:   'Mortgage Loan Place'
     },
@@ -30,7 +30,7 @@ $.ui.mcalc.component({
                     longdesc: ui.options.logoExampleTitle,
                     border: 0
                 });
-                logo = $('<a style="display:block;" />').append(logo).attr({
+                logo = $('<a style="display:block;text-align:center;" />').append(logo).attr({
                     title: ui.options.logoExampleTitle,
                     href:  ui.options.logoExampleUrl
                 });
