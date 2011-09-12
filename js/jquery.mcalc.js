@@ -132,7 +132,7 @@ $.widget('ui.mcalc', {
     },
 
     _log: function() {
-        if ((typeof(console) == 'undefined' || typeof(console.log) == 'undefined') && this.options.debug) {
+        if (typeof(console) != 'undefined' && typeof(console.log) != 'undefined' && this.options.debug) {
             console.log.apply(document, arguments);
         }
     },
@@ -627,7 +627,6 @@ $.ui.mcalc.formula({
         var amort  = d[d.amortschedule]
         d.subtotal = c(p, amort.frequency,  amort.interest, d.term);
         d.total    = parseFloat(d.subtotal + (amort.propertyTax * p) / amort.frequency + amort.insurance + amort.pmi, 10);
-
         return [d.subtotal, d.total]
     }
 });
