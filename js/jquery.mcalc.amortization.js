@@ -60,9 +60,10 @@ $.ui.mcalc.amortableCalc = function() {
     var frequency   = this.data[schedule].frequency;
     var principal   = this.data.loanAmount;
     var balance     = principal;
-    var payment     = this.data.total;
+    var payment     = this.data.subtotal;//this.data.total;
     var periodEnd   = year * frequency;
     
+    //alert (year + " || " + periods + " || " + interest + " || " + frequency + " || " + principal + " || " + balance + " || " + payment + " || " + periodEnd);
     console.log(this.data.subtotal, this.data.total);
 
     var periodStart = periodEnd - (this.data[schedule].frequency - 1);

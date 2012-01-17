@@ -619,9 +619,20 @@ $.ui.mcalc.formula({
     calc: function(d) { 
         var p = (d.cashdownType == 'raw') && d.principal - d.cashdown || d.principal - (d.principal * d.cashdown/100);
         var c = function(p, freq, interest, term) {
-            var ir = Math.pow((1 + (Math.pow((1 + (interest / 2)), 2) - 1)), (1 / freq)) -1;
-            var q  = Math.pow(1 + ir, parseFloat(freq * term));
-            return Math.round(((p * q) / (q - 1)) * ir * 100) / 100;
+            // Play with freq to keep precision.
+            if ( freq == 52 )
+            {
+                var ir = Math.pow((1 + (Math.pow((1 + (interest / 2)), 2) - 1)), (1 / 12)) -1;
+                var q  = (1 - Math.pow( (1+ir), (-1 * term * 12) )) / ir;
+                return (p/q) / 4.3333333;
+            }
+            // Real formula for freq of 12 and less.
+            else
+            {
+                var ir = Math.pow((1 + (Math.pow((1 + (interest / 2)), 2) - 1)), (1 / freq)) -1;
+                var q  = Math.pow(1 + ir, parseFloat(freq * term));
+                return Math.round(((p * q) / (q - 1)) * ir * 100) / 100;
+            }
         };
 
         var amort  = d[d.amortschedule]
@@ -638,6 +649,7 @@ $.ui.mcalc.formula({
     name: 'usa',
 
     calc: function() { 
+        alert('usa');
         var d = this.data;
         var p = (d.cashdownType == 'raw') && d.principal - d.cashdown || d.principal - (d.principal * d.cashdown/100);
 
