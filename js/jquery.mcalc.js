@@ -216,7 +216,6 @@ $.widget('ui.mcalc', {
         return this._ui[ns] || jQuery();
     },
     _updateTotals: function(subtotal, total) {
-        console.log('totals', total, subtotal) 
         var effectArgs = [this.options.fieldUpdatedEffect, this.options.fieldUpdatedEffectOptions, this.options.fieldUpdatedEffectDuration, 
             function(){
                 $(this).css('backgroundColor', 'transparent');

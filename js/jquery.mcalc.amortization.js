@@ -56,17 +56,14 @@ $.ui.mcalc.amortableCalc = function() {
     var year        = parseInt(this._component('amortoolbar').find('span').text(), 10)
     var schedule    = this.data.amortschedule;
     var periods     = this.data[schedule].periods;
-    var interest    = this.data[schedule].interest / this.data[schedule].frequency;
     var frequency   = this.data[schedule].frequency;
+    var interest    = Math.pow((1 + (Math.pow((1 + (this.data[schedule].interest / 2)), 2) - 1)), (1 / frequency)) -1;
     var principal   = this.data.loanAmount;
     var balance     = principal;
     var payment     = this.data.subtotal;//this.data.total;
     var periodEnd   = year * frequency;
-    
-    //alert (year + " || " + periods + " || " + interest + " || " + frequency + " || " + principal + " || " + balance + " || " + payment + " || " + periodEnd);
-    console.log(this.data.subtotal, this.data.total);
-
     var periodStart = periodEnd - (this.data[schedule].frequency - 1);
+
     for (period = 1; period <= periods; period++) {
         interestPaid  = balance * interest;
         principalPaid = payment - interestPaid;
