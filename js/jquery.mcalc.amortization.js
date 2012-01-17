@@ -65,7 +65,10 @@ $.ui.mcalc.amortableCalc = function() {
     var periodStart = periodEnd - (this.data[schedule].frequency - 1);
 
     for (period = 1; period <= periods; period++) {
-        interestPaid  = balance * interest;
+        //interestPaid  = balance * interest;
+        interestRate = $.ui.mcalc.interestRate(this.data[schedule].interest, frequency);
+        //alert(interestRate);
+        interestPaid  = balance * interestRate;
         principalPaid = payment - interestPaid;
         balance       = balance - principalPaid;
         row = {
@@ -87,6 +90,53 @@ $.ui.mcalc.amortableCalc = function() {
         .find('tbody tr:odd').addClass('odd');
 };
 
+$.ui.mcalc.interestRate = function(interestRate, frequency) { 
+    var factor, racine, periodInterestRate;
+
+    factor = 6;
+
+    if ( frequency <= 12) {
+        racine = 1.0 / factor;
+        periodInterestRate = (Math.pow((1 + ( interestRate / 2.0)), racine));
+        return (periodInterestRate-1);
+    }
+    else if (frequency == 52 ) {
+        racine = 1.0 / factor;
+        periodInterestRate = (Math.pow((1 + ( interestRate / 2.0)), racine));
+        return (periodInterestRate-1) / 4.33333333;
+    }
+    else if (frequency == 26 ) {
+        racine = 1.0 / factor;
+        periodInterestRate = (Math.pow((1 + ( interestRate / 2.0)), racine));
+        return (periodInterestRate-1) / 2.166666666;
+    }
+
+
+};
+//function interestRate(interestRate, payment_by_year) {
+//   var racine;
+//   var factor;
+//   // Monthly
+//   if (payment_by_year == 12) {
+//      factor = 6;
+//   }
+//   else {  // Weekly
+//      if (payment_by_year == 52) {
+//         factor = 26;
+//      }
+//      else {  // Bi-Weekly
+//         if (payment_by_year == 26)
+//            factor = 13;
+//         else {  // Twice a month
+//            if (payment_by_year == 24)
+//               factor = 12;
+//         }
+//      }
+//   }
+//   racine = 1.0 / factor;
+//   var periodInterestRate = (Math.pow((1 + (interestRate / 2.0)), racine));
+//   return (periodInterestRate-1);
+//}
 $.ui.mcalc.component({
     name: 'amortable',
     lazy: true,
