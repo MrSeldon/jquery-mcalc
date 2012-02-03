@@ -95,6 +95,13 @@ $.ui.mcalc.component({
 
             subtotal  = ui.data.subtotal;
             total     = ui.data.total;
+
+            if (isNaN(subtotal) || isNaN(total)) {
+                ui._component('interestchart').hide();
+            } else {
+                ui._component('interestchart').show();
+            }
+
             principal = Math.abs(Math.round((ui.data.principal / total) * 100));
             interest  = Math.abs(Math.round(((subtotal - principal) / total) * 100));
             other     = Math.abs(Math.round(((total - subtotal) / total) * 100));

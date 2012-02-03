@@ -216,6 +216,7 @@ $.widget('ui.mcalc', {
         return this._ui[ns] || jQuery();
     },
     _updateTotals: function(subtotal, total) {
+
         var effectArgs = [this.options.fieldUpdatedEffect, this.options.fieldUpdatedEffectOptions, this.options.fieldUpdatedEffectDuration, 
             function(){
                 $(this).css('backgroundColor', 'transparent');
@@ -228,6 +229,12 @@ $.widget('ui.mcalc', {
         
         $.fn.effect.apply(this._component('total'), effectArgs)
             .find('b').text($.format(this.options.currencyFormat, total));
+
+        // Handle empty values
+        if (subtotal == 0) { this._component('subtotal').hide(); }
+        else { this._component('subtotal').show(); }
+        if (total == 0) { this._component('total').hide(); }
+        else { this._component('total').show(); }
     },
     _smartResize: function(pr, size, axis, callback){
         if (size instanceof jQuery) {
@@ -404,7 +411,10 @@ $.ui.mcalc.component({
     events: [
         {type: 'ready',   callback: $.ui.mcalc.inputReadyRefreshObserver},
         {type: 'refresh', callback: function(e, ui) {
-            if (ui.options.cashdownType == 'raw') {
+            if (ui._component('principal').val() == 0) {
+                var cd = '0.00%';
+            }
+            else if (ui.options.cashdownType == 'raw') {
                 var cd = $.format('{0:s}%',  ((ui._component('cashdown').val() / ui._component('principal').val()) * 100).toFixed(2));
             }
             else {
@@ -637,7 +647,12 @@ $.ui.mcalc.formula({
         var amort  = d[d.amortschedule]
         d.subtotal = c(p, amort.frequency,  amort.interest, d.term);
         d.total    = parseFloat(d.subtotal + (amort.propertyTax * p) / amort.frequency + amort.insurance + amort.pmi, 10);
-        return [d.subtotal, d.total]
+        if (isNaN(d.subtotal) || isNaN(d.total)) {
+            return [0, 0];
+        }
+        else {
+            return [d.subtotal, d.total];
+        }
     }
 });
 

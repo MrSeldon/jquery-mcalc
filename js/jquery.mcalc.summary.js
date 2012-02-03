@@ -74,6 +74,15 @@ $.ui.mcalc.component({
         {type: 'refresh', callback: function(e, ui){
             // infos
             var subtotal = ui._component('subtotal').val();
+    
+            if (subtotal == 0) {
+                $('#tab-summary').hide();
+                $('a[href="#tab-summary"]').parent().hide();
+            } else {
+                $('#tab-summary').show();
+                $('a[href="#tab-summary"]').parent().show();
+            }
+
             $(this).empty();
             if (ui.options.summaryPrint) {
                 ui._component('tabs').find('#tab-summary').prepend($.tpl('mcalc.print')
